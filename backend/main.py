@@ -13,12 +13,11 @@ app = FastAPI(title="PlacementPilot AI Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 class InterviewRequest(BaseModel):
     role: str
     resume: str

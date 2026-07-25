@@ -15,48 +15,56 @@ function Resume() {
 
   const [loading, setLoading] = useState(false);
 
-  const handleFileChange = async (e) => {
+  
+    const handleFileChange = async (e) => {
+  try {
     const file = e.target.files[0];
 
     if (!file) return;
 
+    alert(`Selected: ${file.name}`);
     setFileName(file.name);
 
     const arrayBuffer = await file.arrayBuffer();
 
-    const pdf = await pdfjsLib.getDocument({
-      data: arrayBuffer,
-    }).promise;
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
 
     let text = "";
 
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-
       const content = await page.getTextContent();
 
-      text +=
-        content.items.map((item) => item.str).join(" ") + "\n";
+      text += content.items.map((item) => item.str).join(" ") + "\n";
     }
+
+    console.log("Extracted Text:", text);
+    alert("Extracted text length: " + text.length);
 
     setResumeText(text);
-  };
 
-  const generateQuestions = async () => {
-    if (!role) {
-      alert("Enter Job Role");
-      return;
-    }
+  } catch (err) {
+    console.error("PDF Error:", err);
+    alert("PDF Error: " + err.message);
+  }
+};
+const generateQuestions = async () => {
+  if (!role) {
+    alert("Enter Job Role");
+    return;
+  }
 
-    if (!resumeText) {
-      alert("Upload Resume");
-      return;
-    }
+  if (!resumeText) {
+    alert("Upload Resume");
+    return;
+  }
 
+  try {
     setLoading(true);
 
-   const response = await fetch(
-   "https://placementpilot-ai-production.up.railway.app/generate-questions",
+    const response = await fetch(
+      "http://127.0.0.1:8000/generate-questions",
       {
         method: "POST",
         headers: {
@@ -69,28 +77,40 @@ function Resume() {
       }
     );
 
+    console.log("Status:", response.status);
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text);
+    }
+
     const data = await response.json();
+    console.log(data);
 
     setQuestions(data.questions || []);
 
+  } catch (err) {
+    console.error(err);
+    alert("Error: " + err.message);
+  } finally {
     setLoading(false);
-  };
-
+  }
+};
   const evaluateAnswer = async (question) => {
    const response = await fetch(
-   "https://placementpilot-ai-production.up.railway.app/evaluate-answer",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          role,
-          question,
-          answer: answers[question] || "",
-        }),
-      }
-    );
+  "http://127.0.0.1:8000/evaluate-answer",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      role,
+      question,
+      answer: answers[question] || "",
+    }),
+  }
+);
 
     const data = await response.json();
 
