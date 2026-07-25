@@ -55,8 +55,8 @@ function Resume() {
 
     setLoading(true);
 
-    const response = await fetch(
-      "http://127.0.0.1:8000/generate-questions",
+   const response = await fetch(
+   "https://placementpilot-ai-production.up.railway.app/generate-questions",
       {
         method: "POST",
         headers: {
@@ -77,8 +77,8 @@ function Resume() {
   };
 
   const evaluateAnswer = async (question) => {
-    const response = await fetch(
-      "http://127.0.0.1:8000/evaluate-answer",
+   const response = await fetch(
+   "https://placementpilot-ai-production.up.railway.app/evaluate-answer",
       {
         method: "POST",
         headers: {
